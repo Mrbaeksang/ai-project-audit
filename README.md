@@ -1,540 +1,105 @@
 # ai-project-audit
 
-> **Karpathy 4원칙 + 0~10 섹션 종합 감사 명세서**를 한 방에 주입하는 Claude Code 올인원 플러그인.
-> 서비스 규모만 알려주면, AI가 "지금 이 프로젝트에 뭐가 없는지" 등급대로 판단한다.
+> **Karpathy's 4 coding principles + a 10-section production audit**, packaged as one Claude Code plugin. Tell it your service profile — it tells you what's missing.
 
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.anthropic.com/claude-code)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Korean](https://img.shields.io/badge/lang-한국어-red)](#)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.anthropic.com/claude-code) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Multilingual](https://img.shields.io/badge/i18n-EN%20%7C%20한국어-green)](README.ko.md)
 
-**Tags**: `audit` `code-review` `security` `owasp` `12-factor` `solid` `karpathy` `claude-code-plugin` `skill` `korean` `production-readiness`
+🇰🇷 **[한국어 README](README.ko.md)**
 
 ---
 
-## 📚 목차
+## What it does
 
-1. [무엇을 하는가](#무엇을-하는가)
-2. [설치](#-설치)
-3. [사용법](#-사용법)
-4. [Part A — Karpathy 4원칙](#part-a--karpathy-4원칙-코드를-짤-때)
-5. [Part B — 감사 명세서](#part-b--감사-명세서-점검할-때)
-   - [① 서비스 프로필](#-서비스-프로필-먼저-채워라)
-   - [② 등급 기준](#-등급-기준)
-   - [③ 단계별 사용](#-언제-이-스펙을-던질지-단계별-사용)
-   - [0. 프로젝트 골조](#0-프로젝트-골조-기능-코드-전에-확정)
-   - [1. 운영 안정성](#1-운영-안정성-operational-reliability)
-   - [2. 보안](#2-보안-security--owasp-top-10-기반)
-   - [3. 코드 아키텍처](#3-코드-아키텍처-code-architecture)
-   - [4. 데이터 무결성](#4-데이터-무결성-data-integrity)
-   - [5. 성능](#5-성능-performance)
-   - [6. 테스트](#6-테스트-testing)
-   - [7. DevOps / 배포](#7-devops--배포)
-   - [8. 확장성](#8-확장성-scalability)
-   - [9. 12-Factor App](#9-12-factor-app)
-   - [10. 문서화](#10-문서화-documentation)
-6. [AI 프롬프트 템플릿](#-ai-프롬프트-템플릿)
-7. [라이선스](#-라이선스)
+Two behaviors injected into Claude Code, in one install:
+
+1. **Karpathy Discipline** — Think before coding · Simplicity first · Surgical changes · Goal-driven execution. Stops drive-by refactors and over-engineering. ([source](https://x.com/karpathy/status/2015883857489522876))
+2. **Project Audit** — You give a 10-line service profile (MAU, stage, sensitivity, etc.). It runs a 0–10 section checklist (OWASP / SOLID / ACID / 12-Factor / …), filters by grade (🔴🟠🟡🔵⚪), and outputs `✅ ❌ ⚠️ ⏭️` per item — sorted by risk.
+
+**Multilingual**: skills are written in English, but **respond in your language**. Ask in Korean → get Korean. No config.
 
 ---
 
-## 무엇을 하는가
-
-이 플러그인은 두 가지 행동 규약을 Claude Code에 동시 주입한다.
-
-### A. Karpathy Discipline (코드를 짤 때)
-[Andrej Karpathy의 LLM 코딩 함정](https://x.com/karpathy/status/2015883857489522876) 4원칙:
-1. **Think Before Coding** — 추측 금지, 모호하면 묻기
-2. **Simplicity First** — 요청한 것만, 추측성 코드 0줄
-3. **Surgical Changes** — 시킨 곳만, 인접 코드 "개선" 금지
-4. **Goal-Driven Execution** — 검증 가능한 목표로 변환 후 루프
-
-→ drive-by 리팩터링·과설계·"겸사겸사" 변경 차단.
-
-### B. AI Project Audit (점검할 때)
-서비스 프로필 → 등급 필터 → 섹션 매칭 → ✅❌⚠️⏭️ 결과:
-- **0** 골조 / **1** 운영 / **2** 보안(OWASP) / **3** 아키텍처(SOLID)
-- **4** 데이터 / **5** 성능 / **6** 테스트 / **7** DevOps
-- **8** 확장성 / **9** 12-Factor / **10** 문서화
-
----
-
-## 🚀 설치
-
-### Option A — Claude Code 플러그인 (권장)
+## Install (30 seconds)
 
 ```text
 /plugin marketplace add Mrbaeksang/ai-project-audit
 /plugin install ai-project-audit@mrbaeksang-marketplace
 ```
 
-설치하면 자동 활성화:
-- 슬래시 명령 `/audit`, `/skeleton`
-- 스킬 `karpathy-discipline`, `project-audit`
-- 행동 규약 (감사 트리거 + 4원칙 가드)
-
-### Option B — 단일 CLAUDE.md (플러그인 안 써도 됨)
+Or single-file (no plugin needed):
 
 ```bash
-# 신규 프로젝트
 curl -o CLAUDE.md https://raw.githubusercontent.com/Mrbaeksang/ai-project-audit/main/CLAUDE.md
-
-# 기존 CLAUDE.md에 추가
-curl https://raw.githubusercontent.com/Mrbaeksang/ai-project-audit/main/CLAUDE.md >> CLAUDE.md
 ```
-
-### Option C — README 그대로 던지기
-
-이 README 통째로 AI에 주고, 아래 [서비스 프로필](#-서비스-프로필-먼저-채워라) 채워서 같이 보내면 끝.
 
 ---
 
-## 🧭 사용법
+## Use
 
-### 슬래시 명령어
 ```text
-/audit ./src         # 서비스 프로필 묻고 0~10 섹션 점검
-/skeleton .          # 기능 코드 전, 골조(섹션 0)만 잡기
+/audit ./src         # Full audit — asks for service profile, then checks 0–10
+/skeleton .          # Bootstrap section 0 only — before any feature code
 ```
 
-### 자연어 트리거
-다음 키워드면 `project-audit` 스킬 자동 발동:
-- "출시 전 점검", "보안 감사", "OWASP 기준 리뷰", "프로젝트 골조 잡아줘", "12-Factor 체크"
+Or just talk: *"audit this for OWASP"*, *"pre-launch review"*, *"set up project skeleton"*, *"check 12-Factor compliance"*.
 
-### 코드 작성 시
-`karpathy-discipline` 스킬은 코드 작성·수정 모든 순간에 자동 발동. 별도 호출 불필요.
+### Output you get
 
----
-
-## Part A — Karpathy 4원칙 (코드를 짤 때)
-
-> **Tradeoff:** 속도보다 신중함을 우선한다. 사소한 작업은 판단껏.
-
-### 1. Think Before Coding — 추측하지 말고, 혼란을 숨기지 말고, 트레이드오프를 드러내라
-- 가정은 명시한다. 불확실하면 묻는다.
-- 해석이 여러 개면 모두 제시한다 — 혼자 고르지 않는다.
-- 더 단순한 길이 있으면 그 길을 말한다. 필요하면 푸시백한다.
-- 모호하면 멈춘다. 무엇이 모호한지 이름 붙이고, 묻는다.
-
-### 2. Simplicity First — 문제를 푸는 *최소* 코드만, 추측성 코드는 0줄
-- 요청 범위를 넘는 기능 추가 금지.
-- 1회용 코드에 추상화 금지.
-- 요청하지 않은 "유연성"·"설정 가능성" 금지.
-- 발생할 수 없는 시나리오용 에러 처리 금지.
-- 200줄을 50줄로 줄일 수 있으면, 다시 써라.
-
-> 자문: "시니어 엔지니어가 봐도 이게 과설계가 아닌가?" 그렇다면 단순화.
-
-### 3. Surgical Changes — 시킨 곳만 건드린다, 내가 만든 쓰레기만 치운다
-기존 코드 편집 시:
-- 인접한 코드·주석·포맷팅을 "개선"하지 않는다.
-- 망가지지 않은 것을 리팩토링하지 않는다.
-- 기존 스타일에 맞춘다 — 내가 다르게 하고 싶어도.
-- 무관한 죽은 코드는 *언급만* 한다 — 삭제하지 않는다.
-
-내 변경이 만든 고아 처리:
-- *내가* 안 쓰게 만든 import·변수·함수만 제거.
-- 사전 존재하던 죽은 코드는 요청 없이 삭제 금지.
-
-> 검사식: 변경된 모든 라인이 사용자 요청과 직결되는가?
-
-### 4. Goal-Driven Execution — 성공 기준을 정의하고, 검증될 때까지 루프를 돈다
-| 사용자 요청 | 검증 가능한 목표 |
-|-------------|-------------------|
-| "검증 추가" | "잘못된 입력 테스트 작성 → 실패 → 검증 구현 → 통과" |
-| "버그 수정" | "재현 테스트 작성 → 실패 → 수정 → 통과" |
-| "X 리팩토링" | "전체 테스트 통과 확인 → 리팩토링 → 다시 통과 확인" |
-
-다단계 작업은 단계별 verify 명시:
 ```
-1. [단계] → 검증: [확인]
-2. [단계] → 검증: [확인]
+✅ 1.1 Health endpoint — src/health.controller.ts:12
+❌ 2.10 CORS — src/main.ts:8 (wildcard `*` with credentials)
+   fix: app.enableCors({ origin: ['https://app.example.com'], credentials: true })
+⚠️ 5.2 DB index — users.email has no index (login hot path)
+⏭️ 8.4 read replica — MAU 50k still fits one DB
+
+Fix this first (by risk):
+1. ❌ 2.10 CORS  ← security
+2. ❌ 1.4 timeouts ← reliability
+...
 ```
 
 ---
 
-## Part B — 감사 명세서 (점검할 때)
+## What's inside
 
-### ① 서비스 프로필 (먼저 채워라)
+| File | Role |
+|------|------|
+| **[SPEC.md](SPEC.md)** | Full 0–10 checklist (the source of truth AI reads) |
+| **[CLAUDE.md](CLAUDE.md)** | Behavioral rules (Karpathy 4 + audit triggers) |
+| **[EXAMPLES.md](EXAMPLES.md)** | Concrete usage scenarios |
+| `skills/karpathy-discipline/` | Auto-fires on any code edit |
+| `skills/project-audit/` | Auto-fires on audit/review keywords |
+| `commands/audit.md`, `commands/skeleton.md` | `/audit`, `/skeleton` |
 
-> 이 섹션을 채우지 않으면 AI가 "다 해야 해" 또는 "다 건너뛰어도 돼"로 잘못 판단합니다.
+### The 10 audit sections
+
+`0` Skeleton · `1` Reliability · `2` Security (OWASP) · `3` Architecture (SOLID) · `4` Data (ACID) · `5` Performance · `6` Testing · `7` DevOps · `8` Scalability · `9` 12-Factor · `10` Docs
+
+---
+
+## How it knows what applies to *you*
+
+You fill this once per audit (the skill asks for it):
 
 ```yaml
-서비스_유형: ""        # REST API / GraphQL / 모놀리스 / 마이크로서비스 / 내부툴 / CLI / 배치
-주요_언어_프레임워크: "" # FastAPI / NestJS / Django / Express / Spring / etc.
-개발_단계: ""         # 기획 / 골조 잡는 중 / 기능 구현 중 / 출시 전 / 운영 중
-예상_MAU: ""          # 예: 100 / 10,000 / 100만
-팀_규모: ""           # 혼자 / 2-3명 / 5명+ / 10명+
-데이터_민감도: ""      # 낮음(공개) / 중간(개인정보) / 높음(금융·의료·법)
-업타임_요구: ""        # 없음 / 99% / 99.9% / 99.99%
-배포_환경: ""         # 로컬 / 단일서버 / Docker / k8s / 서버리스
-외부_의존성: ""        # DB명 / Redis / S3 / 외부API 등 나열
-공개_여부: ""         # 인터넷 공개 / VPN 내부 / 로컬 전용
-수익_모델: ""         # B2C / B2B / 내부툴 / 사이드프로젝트
+service_type: REST API           # or GraphQL / monolith / microservice / CLI / batch
+stage: pre-launch                # or planning / building / in-production
+expected_mau: 50000
+team_size: 3
+data_sensitivity: medium         # PII
+uptime_target: 99.9%
+deployment: k8s
+exposure: internet-facing
 ```
 
-### ② 등급 기준
-
-> 각 항목 옆 등급 = "이 조건이면 반드시 필요". AI에게: 서비스 프로필 기반으로 각 항목이 이 서비스에 해당하는지 먼저 판단한 뒤 점검하세요. 건너뜀(⏭️) 처리 시 반드시 이유를 한 줄로 명시하세요.
-
-| 등급 | 의미 |
-|------|------|
-| 🔴 **필수** | 규모 무관, 모든 프로젝트 |
-| 🟠 **권장** | MAU 1,000+ / 팀 3명+ / 인터넷 공개 |
-| 🟡 **중규모** | MAU 10,000+ / B2B·엔터프라이즈 / 99.9% SLA |
-| 🔵 **대규모** | MAU 100,000+ / 마이크로서비스 / 99.99% SLA |
-| ⚪ **선택** | 이유 있으면 건너뛰기 가능 |
-
-### ③ 언제 이 스펙을 던질지 (단계별 사용)
-
-| 단계 | 던질 범위 | 목적 |
-|------|-----------|------|
-| **[1] 프로젝트 시작 직전** | 섹션 **0** + 서비스 프로필만 | 골조/규칙부터 확정 |
-| **[2] 기능 1~2개 구현 후** | 섹션 0, 1, 2, 6만 (🔴🟠 등급만) | 안 빠뜨려야 할 최소치 |
-| **[3] 출시 전** | 전 섹션 | 프로덕션 기준 전면 감사 |
-| **[4] 이슈 생겼을 때** | 해당 영역 섹션만 | 문제 영역 집중 점검 |
-| **[5] 신기능 추가 전** | 해당 영역 + 1, 2, 4 | 횡단 관심사 체크 |
+Then every checklist item is graded against your profile — 🟡 Mid-scale items skip if you're solo, 🔵 Large-scale skip below 100k MAU, etc. **You only see what matters for you.**
 
 ---
 
-## 0. 프로젝트 골조 (기능 코드 전에 확정)
+## License
 
-> **언제 쓰나**: 프로젝트 시작 직후, **기능 코드 한 줄 짜기 전에**. 여기 빠뜨리면 나중에 "폴더 구조 갈아엎기"·"네이밍 대공사"·"Git 히스토리 오염" 등 회복 불가능한 기술부채가 생깁니다.
+MIT — see [LICENSE](LICENSE)
 
-### 골조 체크리스트
+## Credits
 
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 0.1 | **디렉토리 구조 원칙** | 레이어별(controller/service/repository) · 피처별(feature/) · 도메인별(domain/) 중 하나 확정하고 README에 명시 | 🔴 | — |
-| 0.2 | **의존성 방향 규칙** | 어느 레이어가 어느 레이어를 import 가능한지 명문화 (예: controller → service → repository, 역방향 금지) | 🟠 | 50줄 이하 스크립트 |
-| 0.3 | **네이밍 컨벤션** | 파일(kebab-case/PascalCase)·변수(camelCase)·상수(UPPER_SNAKE)·엔드포인트(복수 소문자) 통일 | 🔴 | — |
-| 0.4 | **Git 브랜치 전략** | main/develop/feature 또는 trunk-based 중 선택, 보호 규칙(force push 금지 등) 설정 | 🔴 | 혼자·로컬 전용 |
-| 0.5 | **커밋 메시지 규칙** | Conventional Commits(`feat:`, `fix:`, `refactor:`) 또는 팀 자체 규칙, 한국어/영어 중 하나로 통일 | 🟠 | — |
-| 0.6 | **린터·포맷터·pre-commit** | ESLint+Prettier / Ruff+Black 등 자동화. husky·lefthook로 커밋 전 실행 | 🔴 | — |
-| 0.7 | **README 셋업 가이드** | 누구나 10분 내 로컬 구동 가능. 필수 명령어 5줄 이내로 정리 | 🔴 | — |
-| 0.8 | **.env.example** | 필요한 환경변수 목록 템플릿. 민감값은 placeholder, compose와 포트/DB명 일치 | 🔴 | 환경변수 없음 |
-| 0.9 | **에러 코드 체계** | 커스텀 에러 클래스 + 에러 코드 enum(`AUTH_INVALID_TOKEN` 등), 프론트 대응 포맷 합의 | 🟠 | 단순 스크립트 |
-| 0.10 | **API 계약 (DTO/스키마 공유)** | OpenAPI/Zod/Pydantic 등으로 프론트-백 타입 공유, 버저닝(v1/v2) 정책 | 🟠 | 단일 클라이언트 |
-| 0.11 | **로컬 원터치 실행** | `pnpm dev` / `make dev` 등 명령어 1개로 인프라 + 앱 기동 | 🟠 | — |
-| 0.12 | **의존성 추가 기준** | 새 패키지 추가 시 리뷰 체크리스트 (메인테넌스·라이선스·크기·대체 가능성) 명문화 | 🟡 | 개인 프로젝트 |
-
-### 디렉토리 구조 판단 가이드 (0.1 상세)
-
-| 구조 | 적합 케이스 | 예시 |
-|------|-------------|------|
-| **레이어별** | 작은~중간 모놀리스, 단순 CRUD | `src/{controllers,services,repositories}` |
-| **피처별** | 기능 경계 명확, 팀이 피처 단위로 일함 | `src/features/{auth,billing,search}` |
-| **도메인별 (DDD)** | 복잡한 도메인, 엔터프라이즈 | `src/domains/{order,inventory}/*/{api,domain,infrastructure}` |
-
-**판단 원칙**: 파일이 200개 넘어가는 시점에 후회하지 않을 구조를 고를 것. 중간에 바꾸는 건 **지옥**.
-
-### 의존성 방향 규칙 예시 (0.2 상세)
-
-```
-허용:   controller ─→ service ─→ repository ─→ model
-금지:   repository ─→ service (역방향)
-        service ─→ controller (상위→하위 위반)
-        feature A ─→ feature B (수평 결합, 공통 모듈로 추출)
-```
-
-린터 룰로 강제 (예: `dependency-cruiser`, `nx` boundaries). **README 문서보다 자동화된 규칙이 더 강함.**
-
----
-
-## 1. 운영 안정성 (Operational Reliability)
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 1.1 | **Health endpoint** | `/health` — DB·Redis 포함 liveness/readiness 구분 | 🔴 | CLI툴·로컬배치 |
-| 1.2 | **환경변수 시작 검증** | 필수 ENV 없으면 앱 시작 즉시 실패 (fast fail) | 🔴 | — |
-| 1.3 | **글로벌 에러 핸들러** | 모든 unhandled exception → 구조화 로그 → 적절한 HTTP 응답 | 🔴 | — |
-| 1.4 | **외부 의존성 타임아웃** | DB, HTTP client, Redis 전부 timeout 명시 | 🔴 | 외부 의존성 없음 |
-| 1.5 | **Graceful shutdown** | SIGTERM → 진행 중 요청 완료 후 종료, DB 커넥션 반환 | 🔴 | CLI·배치 |
-| 1.6 | **Structured logging** | JSON 포맷, level, timestamp, service명 포함 | 🔴 | 로컬 dev 전용 |
-| 1.7 | **Correlation ID** | 모든 로그·응답에 request_id 전파 | 🟠 | 단일 함수·CLI |
-| 1.8 | **OpenTelemetry** | trace/span/metric, OTLP exporter | 🟠 | 단일 서비스·내부툴 |
-| 1.9 | **/metrics endpoint** | Prometheus 포맷, request count·latency·error rate | 🟠 | k8s·클라우드 미사용 |
-| 1.10 | **Retry + exponential backoff** | 일시적 장애 자동 복구, jitter 포함 | 🟠 | 외부 의존성 없음 |
-| 1.11 | **Circuit breaker** | 외부 API 장애 시 cascade failure 방지 | 🟡 | 외부 의존성 1개 이하 |
-| 1.12 | **Dead letter queue** | 실패한 비동기 작업 보존 및 재처리 | 🟡 | 큐 없음 |
-| 1.13 | **Alerting** | 에러율·레이턴시 임계값 초과 시 알림 (Slack·PagerDuty 등) | 🟠 | 사이드프로젝트 |
-| 1.14 | **Rate limiting** | 엔드포인트별 요청 제한 | 🟠 | VPN 내부 전용 |
-| 1.15 | **요청 크기 제한** | body size, file upload 크기 상한 명시 | 🔴 | — |
-
----
-
-## 2. 보안 (Security — OWASP Top 10 기반)
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 2.1 | **시크릿 하드코딩 금지** | API 키·DB 비밀번호 코드에 없음, `.env`·시크릿 매니저 사용 | 🔴 | — |
-| 2.2 | **입력값 검증** | 모든 외부 입력 경계에서 타입·형식·길이 검증 | 🔴 | — |
-| 2.3 | **SQL 인젝션 방지** | parameterized query 또는 ORM 사용, raw query 없음 | 🔴 | DB 없음 |
-| 2.4 | **인증 (AuthN)** | 세션·JWT·OAuth 중 하나, 만료 처리 포함 | 🔴 | 완전 공개 API |
-| 2.5 | **인가 (AuthZ)** | 리소스 소유권 검증, 역할 기반 접근 제어 | 🔴 | 단일 사용자 |
-| 2.6 | **HTTPS 강제** | HTTP → HTTPS 리다이렉트, HSTS 헤더 | 🔴 | VPN 내부 전용 |
-| 2.7 | **에러 메시지 정보 노출 방지** | 스택트레이스·DB 에러 외부 응답 금지 | 🔴 | — |
-| 2.8 | **민감 데이터 마스킹** | 로그·응답에 PII·카드번호·비밀번호 원문 없음 | 🔴 | 민감 데이터 없음 |
-| 2.9 | **패스워드 해싱** | bcrypt·argon2 사용, 평문 저장 금지 | 🔴 | 자체 인증 없음 |
-| 2.10 | **CORS 설정** | 허용 origin 명시, wildcard `*` 금지 (credentials 있을 때) | 🟠 | 브라우저 클라이언트 없음 |
-| 2.11 | **XSS 방지** | 출력 이스케이프, CSP 헤더 | 🟠 | HTML 렌더링 없음 |
-| 2.12 | **CSRF 방지** | CSRF 토큰 또는 SameSite 쿠키 | 🟠 | 쿠키 인증 없음 |
-| 2.13 | **Brute force 방지** | 로그인 시도 횟수 제한, 계정 잠금 | 🟠 | 인증 없음 |
-| 2.14 | **의존성 취약점 스캔** | `npm audit` / `pip-audit` / Snyk CI 연동 | 🟠 | 사이드프로젝트 |
-| 2.15 | **최소 권한 원칙** | DB user·IAM role·서비스 계정 필요한 권한만 | 🟠 | — |
-| 2.16 | **파일 업로드 검증** | 확장자·MIME·크기 검증, 저장 경로 노출 금지 | 🔴 | 파일 업로드 없음 |
-
----
-
-## 3. 코드 아키텍처 (Code Architecture)
-
-### SOLID 원칙
-
-| # | 원칙 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 3.1 | **SRP** (단일 책임) | 클래스·함수는 하나의 이유로만 변경됨 | 🟠 | 50줄 이하 스크립트 |
-| 3.2 | **OCP** (개방-폐쇄) | 확장에 열림, 수정에 닫힘. 새 기능 추가 시 기존 코드 수정 최소화 | 🟡 | — |
-| 3.3 | **LSP** (리스코프 치환) | 하위 클래스는 상위 클래스를 대체 가능 | 🟠 | 상속 없음 |
-| 3.4 | **ISP** (인터페이스 분리) | 사용하지 않는 메서드에 의존 안 함 | 🟠 | — |
-| 3.5 | **DIP** (의존성 역전) | 구현체가 아닌 추상에 의존, DI 컨테이너 활용 | 🟠 | 단순 스크립트 |
-
-### 일반 원칙
-
-| # | 원칙 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 3.6 | **DRY** (중복 제거) | 같은 로직이 2곳 이상이면 추상화 | 🟠 | — |
-| 3.7 | **YAGNI** (필요할 때 만들기) | 현재 필요 없는 기능·추상화 금지 | 🔴 | — |
-| 3.8 | **KISS** (단순하게) | 함수 50줄 이하, 중첩 4단계 이하 | 🟠 | — |
-| 3.9 | **불변성 (Immutability)** | 상태 직접 변경 대신 새 객체 반환 | 🟠 | 성능 임계 코드 |
-| 3.10 | **에러 처리 일관성** | 에러를 조용히 삼키지 않음, 명시적 처리 | 🔴 | — |
-| 3.11 | **명확한 네이밍** | 변수·함수 이름이 의도를 설명, 약어 최소화 | 🔴 | — |
-| 3.12 | **함수 크기** | 함수당 50줄 이하, 파일당 400줄 이하 권장 | 🟠 | — |
-| 3.13 | **순환 의존성 없음** | 모듈 A → B → A 금지 | 🟠 | — |
-| 3.14 | **Null/Optional 명시** | null 가능 여부 타입으로 표현, null 체크 누락 없음 | 🟠 | 동적 타입 언어 |
-
----
-
-## 4. 데이터 무결성 (Data Integrity)
-
-### ACID
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 4.1 | **원자성 (Atomicity)** | 여러 DB 변경이 하나의 트랜잭션으로 묶임 | 🔴 | 단일 쓰기 연산 |
-| 4.2 | **일관성 (Consistency)** | 트랜잭션 후 제약 조건 항상 유지 | 🔴 | — |
-| 4.3 | **격리성 (Isolation)** | 동시 트랜잭션 간 간섭 없음, isolation level 명시 | 🟠 | 단일 요청 처리 |
-| 4.4 | **지속성 (Durability)** | 커밋된 데이터는 장애 후에도 유지 | 🔴 | 캐시·임시 데이터 |
-
-### 일반 데이터 원칙
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 4.5 | **멱등성 (Idempotency)** | 같은 요청 여러 번 와도 결과 동일 | 🟠 | 읽기 전용 API |
-| 4.6 | **낙관적 락** | 동시 수정 충돌 감지 (version·updated_at 비교) | 🟡 | 동시 수정 없음 |
-| 4.7 | **소프트 삭제 vs 하드 삭제** | 삭제 전략 명시, 실수 복구 가능 여부 | 🟠 | — |
-| 4.8 | **마이그레이션 전략** | 스키마 변경 롤백 가능, zero-downtime migration | 🟠 | 개발 초기 |
-| 4.9 | **백업 전략** | 백업 주기·보관 기간·복구 절차 문서화 | 🟠 | 데이터 손실 허용 |
-| 4.10 | **입력 경계 검증** | DB 저장 전 도메인 규칙 검증 | 🔴 | — |
-
----
-
-## 5. 성능 (Performance)
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 5.1 | **N+1 쿼리 방지** | ORM에서 eager loading, dataloader 사용 | 🔴 | DB 없음 |
-| 5.2 | **DB 인덱스** | WHERE·JOIN·ORDER BY 컬럼에 인덱스 존재 | 🔴 | 소량 데이터 |
-| 5.3 | **커넥션 풀** | DB·Redis 커넥션 풀 크기 명시 및 최적화 | 🟠 | 로컬 단일 요청 |
-| 5.4 | **페이지네이션** | 리스트 API에 limit/offset 또는 cursor 필수 | 🔴 | 소량 고정 데이터 |
-| 5.5 | **캐싱 전략** | 자주 읽는 데이터 Redis·메모리 캐시, TTL 명시 | 🟠 | 쓰기 위주 서비스 |
-| 5.6 | **비동기 I/O** | 블로킹 I/O를 비동기로 처리 | 🟠 | 단순 스크립트 |
-| 5.7 | **응답 압축** | gzip/brotli 응답 압축 | 🟠 | 내부 API |
-| 5.8 | **느린 쿼리 감지** | slow query log 설정, 임계값 이상 로그·알림 | 🟡 | — |
-| 5.9 | **메모리 누수 방지** | 이벤트리스너·타이머·커넥션 해제 확인 | 🟠 | 배치·일회성 |
-| 5.10 | **배치 처리** | 개별 row 반복 대신 bulk insert/update | 🟠 | 단순 CRUD |
-
----
-
-## 6. 테스트 (Testing)
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 6.1 | **유닛 테스트** | 핵심 비즈니스 로직 함수 단위 테스트 | 🔴 | 순수 CRUD만 |
-| 6.2 | **통합 테스트** | DB·외부 API 포함 엔드포인트 테스트 | 🟠 | — |
-| 6.3 | **E2E 테스트** | 실제 사용자 흐름 자동화 | 🟡 | 내부툴 |
-| 6.4 | **테스트 커버리지** | 핵심 비즈니스 로직 80%+ | 🟠 | 사이드프로젝트 |
-| 6.5 | **테스트 격리** | 테스트 간 상태 공유 없음, 각 테스트 독립 | 🟠 | — |
-| 6.6 | **모킹 전략** | 외부 API는 mock, DB는 실제(또는 인메모리) 전략 명시 | 🟠 | — |
-| 6.7 | **TDD** | 버그 수정 시 재현 테스트 먼저 작성 | 🟠 | 탐색적 개발 초기 |
-| 6.8 | **부하 테스트** | 예상 트래픽의 2-3배 부하에서 응답시간 확인 | 🟡 | MAU 1,000 이하 |
-| 6.9 | **Contract 테스트** | API 스펙 변경이 클라이언트에 미치는 영향 감지 | 🟡 | 단일 클라이언트 |
-
----
-
-## 7. DevOps / 배포
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 7.1 | **시크릿 관리** | GitHub Secrets·Vault·SSM, .env 미커밋 | 🔴 | — |
-| 7.2 | **의존성 버전 고정** | lock 파일 커밋 (package-lock.json, requirements.txt) | 🔴 | — |
-| 7.3 | **환경 분리** | dev / staging / prod 환경 분리, 각자 별도 설정 | 🟠 | 로컬 전용 |
-| 7.4 | **CI/CD 파이프라인** | 푸시 → 테스트 → 빌드 → 배포 자동화 | 🟠 | 혼자·사이드 |
-| 7.5 | **컨테이너화** | Dockerfile·docker-compose 존재 | 🟠 | 서버리스 |
-| 7.6 | **롤백 전략** | 배포 실패 시 이전 버전으로 복구 방법 | 🟠 | 무중단 불필요 |
-| 7.7 | **Blue-Green / Canary** | 다운타임 없는 배포 | 🟡 | 99% SLA 이하 |
-| 7.8 | **Infrastructure as Code** | Terraform·Pulumi 등 인프라 코드화 | 🟡 | 단일 서버 |
-| 7.9 | **빌드 재현성** | 같은 코드·같은 의존성 → 항상 동일한 빌드 | 🟠 | — |
-
----
-
-## 8. 확장성 (Scalability)
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 8.1 | **무상태 설계** | 서버 로컬 상태 없음, 세션은 외부 저장소 | 🟡 | 단일 인스턴스 |
-| 8.2 | **수평 확장 가능** | 인스턴스 추가로 처리량 증가 가능 | 🟡 | 트래픽 예측 가능 |
-| 8.3 | **비동기 처리** | 오래 걸리는 작업은 큐로 분리 | 🟠 | 빠른 응답만 |
-| 8.4 | **DB 읽기/쓰기 분리** | read replica 사용 | 🔵 | MAU 10만 이하 |
-| 8.5 | **CDN** | 정적 파일·이미지 CDN 서빙 | 🟡 | API only |
-| 8.6 | **이벤트 기반 아키텍처** | 서비스 간 직접 호출 대신 이벤트로 결합도 낮춤 | 🔵 | 단일 서비스 |
-
----
-
-## 9. 12-Factor App
-
-| # | 항목 | 설명 | 등급 |
-|---|------|------|------|
-| 9.1 | **Config → 환경변수** | 코드에 설정값 없음, 모두 ENV | 🔴 |
-| 9.2 | **로그 → stdout** | 파일 로그 직접 안 쓰고 stdout으로 출력, 수집은 인프라가 | 🟠 |
-| 9.3 | **프로세스 → Stateless** | 프로세스 재시작 후에도 동작, 로컬 파일에 의존 안 함 | 🟠 |
-| 9.4 | **의존성 명시** | requirements.txt·package.json 등 의존성 명시적 선언 | 🔴 |
-| 9.5 | **Dev/Prod 동일성** | 로컬·스테이징·프로덕션 환경 최대한 동일 | 🟠 |
-
----
-
-## 10. 문서화 (Documentation)
-
-| # | 항목 | 설명 | 등급 | 건너뛸 수 있는 경우 |
-|---|------|------|------|-------------------|
-| 10.1 | **README** | 프로젝트 목적, 설치, 실행, 환경변수 설명 | 🔴 | — |
-| 10.2 | **API 문서** | Swagger·OpenAPI·Postman collection | 🟠 | 내부툴 |
-| 10.3 | **아키텍처 다이어그램** | 서비스·DB·외부 의존성 관계도 | 🟠 | 단순 단일 서비스 |
-| 10.4 | **ADR** (Architecture Decision Records) | 중요 기술 결정의 이유 기록 | 🟡 | 팀 2명 이하 |
-| 10.5 | **운영 런북** | 장애 대응 절차, 재시작 방법, 알려진 이슈 | 🟠 | 혼자 운영 |
-| 10.6 | **변경 로그** | 버전별 변경 사항 기록 | 🟠 | 내부툴 |
-
----
-
-## 🤖 AI 프롬프트 템플릿
-
-### [1] 새 프로젝트 골조 잡기 (프로젝트 시작 직전)
-```
-README.md(ai-project-audit)를 읽었어.
-
-서비스 프로필:
-[위 yaml 채워서 붙여넣기]
-
-개발 단계: 기획 / 골조 잡는 중
-
-섹션 0(프로젝트 골조)만 기준으로 아래 단계로 진행해줘:
-1단계: 이 프로필에 맞는 0.1 ~ 0.12 각 항목의 구체적 권장안 (폴더 구조 예시, 네이밍 규칙, Git 전략 등)
-2단계: 위 권장안을 실제 파일로 만들어줘 (README, .env.example, .eslintrc, pre-commit, 디렉토리 뼈대 등)
-기능 코드는 아직 짜지 말고 골조만.
-```
-
-### [2] 기능 1~2개 후 최소치 체크
-```
-README.md(ai-project-audit)를 읽었어.
-
-서비스 프로필:
-[위 yaml 채워서 붙여넣기]
-
-개발 단계: 기능 구현 중
-
-섹션 0, 1, 2, 6만 보고 🔴 필수 + 🟠 권장 등급만 점검해줘.
-[코드 붙여넣기 또는 파일 목록]
-
-결과 포맷:
-✅ [번호] 항목명 — 확인 위치 (파일:줄번호)
-❌ [번호] 항목명 — 문제점 + 수정 코드
-⚠️ [번호] 항목명 — 부족한 점
-⏭️ [번호] 항목명 — 이 서비스에서 불필요한 이유
-
-"이것부터 고쳐라" 우선순위 리스트 마지막에 추가.
-```
-
-### [3] 기존 프로젝트 전체 감사 (출시 전)
-```
-README.md(ai-project-audit)를 읽었어.
-
-서비스 프로필:
-[위 yaml 채워서 붙여넣기]
-
-개발 단계: 출시 전
-
-[코드 붙여넣기 또는 파일 목록]
-
-전 섹션(0 ~ 10) 기준으로 각 체크리스트 항목마다:
-✅ [번호] 항목명 — 확인 위치 (파일:줄번호)
-❌ [번호] 항목명 — 문제점 + 수정 코드
-⚠️ [번호] 항목명 — 부족한 점
-⏭️ [번호] 항목명 — 이 서비스에서 불필요한 이유
-
-마지막에 ❌ 항목들을 위험도(보안 > 운영 > 데이터 > 성능 > 나머지) 순으로 정렬해서
-"이것부터 고쳐라" 리스트 줘.
-```
-
-### [4] 특정 섹션만 집중 리팩토링
-```
-README.md(ai-project-audit) 섹션 [번호]([영역명])만 기준으로
-아래 코드를 점검하고 문제 있는 부분 바로 수정 코드로 줘.
-
-[코드]
-```
-
-### [5] 신규 기능 추가 전 체크
-```
-새 기능 [기능명]을 추가하기 전에 README.md(ai-project-audit) 기준으로
-이 기능 구현 시 놓치기 쉬운 체크포인트만 골라서 알려줘.
-(섹션 1 운영 안정성, 2 보안, 4 데이터 무결성 중심으로)
-
-[기능 명세 또는 설계 스케치]
-```
-
-### [6] 이슈 생겼을 때 집중 점검
-```
-지금 [장애/버그 요약] 이슈가 발생했어.
-README.md(ai-project-audit)의 [관련 섹션들]만 기준으로
-현재 코드에서 이 문제와 연관된 항목이 제대로 되어 있는지 점검하고
-재발 방지 코드까지 줘.
-
-[관련 코드]
-```
-
----
-
-## ✅ 작동 신호
-
-이 플러그인이 효과를 내고 있다면:
-- diff에 불필요한 변경이 줄어든다
-- 과설계로 인한 재작성이 줄어든다
-- 실수 *후*가 아니라 구현 *전*에 명확화 질문이 온다
-- "이 서비스엔 불필요" 판단이 자주 보인다 (등급 필터 작동)
-- 점검 결과가 ✅❌⚠️⏭️ 마커로 정리되고, ❌ 항목이 위험도 순으로 정렬됨
-- PR이 깔끔하고 최소한이다 — 곁다리 리팩토링 없음
-
----
-
-## 🪪 라이선스
-
-MIT — [LICENSE](LICENSE)
-
-## 🔗 영감 / 참고
-
-- [Andrej Karpathy — LLM 코딩 함정](https://x.com/karpathy/status/2015883857489522876)
-- [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) · [12-Factor App](https://12factor.net/)
-
----
-
-> **단일 파일 정책**: 점검할 때 AI에 **이 README 하나만** 던지면 됨.
-> 플러그인을 설치하면 이 README가 자동 행동 규약으로 들어간다.
+Inspired by [Andrej Karpathy on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) and [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills). Built on [OWASP Top 10](https://owasp.org/www-project-top-ten/) and [12-Factor App](https://12factor.net/).

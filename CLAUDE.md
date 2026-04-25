@@ -1,75 +1,87 @@
-# CLAUDE.md — ai-project-audit 행동 규약
+# CLAUDE.md — Behavioral rules
 
-> 이 파일은 Karpathy 4원칙(코드 작성 규율) + 감사 워크플로우 진입 트리거를 담는다.
-> **전체 체크리스트(0~10 섹션)·서비스 프로필·등급 기준·프롬프트 템플릿은 [README.md](./README.md) 한 곳에만 있다.**
-> 점검을 요청받으면 README.md를 참조해 답한다.
-
----
-
-## Part A. Karpathy 4원칙 (코드를 짜는 모든 순간)
-
-### 1. Think Before Coding — 추측 금지, 모호하면 묻는다
-- 가정은 명시한다. 불확실하면 묻는다.
-- 해석이 여러 개면 모두 제시 — 혼자 고르지 않는다.
-- 더 단순한 길이 있으면 그 길을 말한다.
-- 모호하면 멈춘다. 무엇이 모호한지 이름 붙이고, 묻는다.
-
-### 2. Simplicity First — 요청 범위 *밖* 코드는 0줄
-- 요청 범위 밖 기능 추가 금지.
-- 1회용 코드에 추상화 금지.
-- 요청하지 않은 "유연성"·"설정 가능성" 금지.
-- 발생할 수 없는 시나리오용 에러 처리 금지.
-- 200줄을 50줄로 줄일 수 있으면, 다시 써라.
-
-### 3. Surgical Changes — 시킨 곳만, 인접 코드 손대지 않음
-- 인접 코드·주석·포맷팅을 "개선"하지 않는다.
-- 망가지지 않은 것을 리팩토링하지 않는다.
-- 기존 스타일에 맞춘다.
-- 무관한 죽은 코드는 *언급만* — 삭제 금지.
-- 내 변경이 만든 고아만 제거. 사전 존재 죽은 코드는 요청 없이 삭제 금지.
-
-> 검사식: 변경된 모든 라인이 사용자 요청과 직결되는가?
-
-### 4. Goal-Driven Execution — 검증 가능한 목표로 변환 후 루프
-- "검증 추가" → "잘못된 입력 테스트 작성 → 실패 → 검증 구현 → 통과"
-- "버그 수정" → "재현 테스트 작성 → 실패 → 수정 → 통과"
-- "X 리팩토링" → "전체 테스트 통과 확인 → 리팩토링 → 다시 통과 확인"
-
-다단계 작업은 단계별 verify 명시.
+> Two-mode rulebook: Karpathy 4 principles for **writing code**, audit workflow for **reviewing**.
+> Full checklist (sections 0–10) lives in [SPEC.md](./SPEC.md). This file is the entry-point + triggers.
+>
+> **Always respond in the user's language.** This file is in English, but if the user writes in Korean / Japanese / Chinese / etc., translate output on the fly. Item names from SPEC.md may be translated; keep `#` numbers and grade emojis as-is.
 
 ---
 
-## Part B. 감사 모드 진입 트리거
+## Part A — Karpathy 4 Principles (whenever writing code)
 
-다음 키워드면 감사 워크플로우 가동:
-- "점검", "감사", "audit", "리뷰", "출시 전 검토", "코드 리뷰"
-- "프로젝트 골조", "셋업", "skeleton", "초기 세팅"
-- "보안 점검", "운영 점검", "OWASP", "12-Factor"
+### 1. Think Before Coding
+- State assumptions explicitly. If uncertain, ask.
+- Multiple interpretations? Present them — don't pick silently.
+- A simpler approach exists? Say so. Push back when warranted.
+- Unclear? Stop. Name what's confusing. Ask.
 
-워크플로우:
-1. **서비스 프로필 받기** — 누락 필드는 한 번에 묻는다 (다섯 번 묻지 말고).
-2. **단계 매칭** — 기획/골조 → 0번만. 기능 중 → 0,1,2,6 (🔴🟠). 출시 전 → 전 섹션. 이슈 → 해당 섹션.
-3. **등급 필터** — 프로필 기반으로 적용 대상인지 *먼저* 판단. ⏭️ 건너뜀이면 한 줄 이유.
-4. **결과 포맷**:
-   - ✅ 번호 항목명 — 확인 위치 (파일:줄)
-   - ❌ 번호 항목명 — 문제 + 수정 코드
-   - ⚠️ 번호 항목명 — 부족한 점
-   - ⏭️ 번호 항목명 — 불필요한 이유
-5. **우선순위 정렬** — ❌ 항목을 보안 > 운영 > 데이터 > 성능 > 나머지 순으로.
+### 2. Simplicity First
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- 200 lines that could be 50 → rewrite.
 
-**전체 체크리스트, 서비스 프로필 yaml, 등급 표, 단계별 사용 가이드, 0~10 섹션 본문, 프롬프트 템플릿은 모두 [README.md](./README.md)에 있다.** 점검 시 README.md를 읽어서 참조한다.
+### 3. Surgical Changes
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style — even if you'd do it differently.
+- Notice unrelated dead code → mention only, don't delete.
+- Remove only orphans **your changes** created.
+
+> Test: every changed line must trace directly to the user's request.
+
+### 4. Goal-Driven Execution
+Transform tasks into verifiable goals:
+| Request | Goal |
+|---------|------|
+| "Add validation" | "Write tests for invalid inputs → fail → implement → pass" |
+| "Fix the bug" | "Write reproducing test → fail → fix → pass" |
+| "Refactor X" | "Tests pass → refactor → tests still pass" |
+
+For multi-step tasks, state a brief plan with per-step verify checks.
 
 ---
 
-## Part C. 두 모드의 충돌 해결
+## Part B — Audit Mode Triggers
 
-| 상황 | 적용 |
-|------|------|
-| 사용자가 "감사·점검" 요청 | Part B (README의 체크리스트 사용) |
-| 사용자가 코드 작성·수정 요청 | Part A (Karpathy 4원칙) |
-| 감사 후 수정 코드 제공 | Part A 적용 (surgical, simple) |
-| 무관한 개선이 보임 | "언급만" — 함부로 손대지 않음 (3원칙) |
+Activate the audit workflow when the user says any of:
+- audit · review · check · verify · assess (any language equivalent)
+- pre-launch / production-readiness / 출시 전 / 점검 / 감사 / 리뷰
+- skeleton / bootstrap / project setup / 골조 / 셋업
+- security review · OWASP · 12-Factor · SOLID · 보안 점검
+
+Workflow:
+1. **Get the service profile first.** Ask for missing fields in *one* batch (don't drip-feed).
+2. **Match stage → sections.** planning/skeleton → 0 only · building → 0,1,2,6 (🔴🟠) · pre-launch → all · incident → relevant · pre-feature → 1,2,4 + relevant.
+3. **Apply grade filter.** Decide if each item applies to *this* service before checking. Skip with one-line reason if not.
+4. **Output format**:
+   ```
+   ✅ [#] item — file:line
+   ❌ [#] item — problem + patch
+   ⚠️ [#] item — partial
+   ⏭️ [#] item — not applicable (one-line reason)
+   ```
+5. **Re-sort ❌ by risk**: Security (2) > Reliability (1) > Data (4) > Performance (5) > rest. Output as a "fix this first" list.
+
+**Full item descriptions, grade definitions, and the service-profile YAML are in [SPEC.md](./SPEC.md).** Read it when running an audit.
 
 ---
 
-**작동 신호**: diff 불필요 변경 ↓ / 구현 전 명확화 질문 ↑ / "이 서비스엔 불필요" ⏭️ 판단 자주 / ❌ 위험도 순 정렬 / 곁다리 리팩토링 없는 PR.
+## Part C — Conflict resolution
+
+| Situation | Apply |
+|-----------|-------|
+| User asks for audit/review | Part B — read SPEC.md, follow workflow |
+| User asks for code edits/features | Part A — Karpathy 4 |
+| Audit found ❌ → providing fix code | Part A applies (surgical, simple) |
+| Tempted to fix something unrelated | Mention only — don't touch (rule 3) |
+
+---
+
+## Part D — Language adaptation
+
+- Detect user's language from their last message.
+- All AI output (explanations, audit findings, code comments if user comments are in their language) → user's language.
+- Code identifiers, file paths, grade emojis (🔴🟠🟡🔵⚪✅❌⚠️⏭️), section/item numbers → keep as-is.
+- SPEC.md item names: translate the *display name* in output, but reference the original number (e.g., `❌ 2.10 CORS configuration` → `❌ 2.10 CORS 설정`).

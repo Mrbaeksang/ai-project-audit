@@ -1,55 +1,76 @@
 ---
 name: project-audit
-description: 서비스 프로필 기반 종합 프로젝트 감사. 사용자가 "감사", "점검", "audit", "리뷰", "출시 전 검토", "코드 리뷰", "프로젝트 골조", "셋업", "보안 점검", "운영 점검", "OWASP", "12-Factor"를 요청하거나, 프로젝트 시작·기능 구현 후·출시 전·이슈 발생·신규 기능 전 단계에서 발동. 0~10번 섹션(골조/운영/보안/아키텍처/데이터/성능/테스트/DevOps/확장성/12-Factor/문서화)을 등급(🔴🟠🟡🔵⚪)대로 필터링해 점검하고, ✅❌⚠️⏭️ 포맷으로 결과를 낸다.
+description: Service-profile-driven project audit. Auto-fires when the user requests audit, review, code review, pre-launch check, security audit, OWASP/SOLID/12-Factor compliance, project skeleton/bootstrap/setup, or any equivalent in any language (e.g., 점검, 감사, 리뷰, 출시 전 검토, 보안 점검, 골조, 셋업). Reads the full 0–10 section checklist from SPEC.md, filters items by grade (🔴🟠🟡🔵⚪) against the user's service profile, and outputs results as ✅❌⚠️⏭️ markers re-sorted by risk. Respond in the user's language.
 ---
 
 # Project Audit
 
-## 핵심 원칙
+This skill carries no checklist content of its own. The full checklist (service profile YAML, grade definitions, stage-to-section matching, 0–10 section items) is in **`SPEC.md`** at the plugin root. Read it when running an audit.
 
-**이 스킬은 본문을 들고 다니지 않는다.** 전체 체크리스트·서비스 프로필 양식·등급 기준·단계별 사용 가이드·0~10 섹션 본문·프롬프트 템플릿은 모두 플러그인 루트의 `README.md` **한 곳**에 있다. 발동 시 README.md를 읽어서 사용한다.
+## Workflow
 
-## 워크플로우
+### 0. Get the service profile first
+The user's first audit request usually omits the profile. Ask for missing fields in **one batch** (not drip-fed):
 
-### 0단계 — 서비스 프로필 수집 (먼저)
-사용자가 감사를 요청하면 **먼저** README.md의 "① 서비스 프로필" yaml을 받는다. 메시지에 일부가 이미 있으면 빠진 것만 한 번에 보충 질문 (다섯 번 묻지 말고).
-
-> 프로필 없이 점검하면 "다 해야 함" 또는 "다 건너뜀"으로 잘못 판단한다. **반드시 먼저 받는다.**
-
-### 1단계 — 단계별 적용 범위 매칭
-README.md의 "③ 언제 이 스펙을 던질지" 표를 기준으로 섹션 범위 결정:
-
-| 개발 단계 | 던질 섹션 | 등급 필터 |
-|-----------|-----------|----------|
-| 기획 / 골조 잡는 중 | **0** | 전부 |
-| 기능 구현 중 | 0, 1, 2, 6 | 🔴 + 🟠 |
-| 출시 전 | 0 ~ 10 (전체) | 전부 |
-| 운영 중 (이슈) | 해당 영역 | 전부 |
-| 신규 기능 추가 전 | 1, 2, 4 + 해당 | 🔴 + 🟠 |
-
-### 2단계 — 등급 필터링
-README.md의 "② 등급 기준" 적용. 서비스 프로필 기반으로 **각 항목이 적용 대상인지 먼저 판단**. 건너뛰면(⏭️) 한 줄 이유 필수.
-
-### 3단계 — 점검 결과 포맷
-각 체크리스트 항목마다:
-```
-✅ [번호] 항목명 — 확인 위치 (파일:줄번호)
-❌ [번호] 항목명 — 문제점 + 수정 코드
-⚠️ [번호] 항목명 — 부족한 점
-⏭️ [번호] 항목명 — 이 서비스에서 불필요한 이유 (한 줄)
+```yaml
+service_type: ""         # REST API / GraphQL / monolith / microservice / CLI / batch
+language_framework: ""
+stage: ""                # planning / skeleton / building / pre-launch / in-production
+expected_mau: ""
+team_size: ""
+data_sensitivity: ""     # low / medium (PII) / high (financial/medical/legal)
+uptime_target: ""        # none / 99% / 99.9% / 99.99%
+deployment: ""
+external_deps: ""
+exposure: ""             # internet-facing / VPN-only / local-only
+business_model: ""
 ```
 
-### 4단계 — 우선순위 정렬
-❌ 항목을 마지막에 **위험도 순**으로 다시 정렬:
-```
-보안(2) > 운영(1) > 데이터(4) > 성능(5) > 나머지
-```
-"이것부터 고쳐라" 리스트로 출력.
+> Without the profile, AI defaults to "everything required" or "everything skippable" — both wrong.
 
-## Karpathy 4원칙과의 결합
+### 1. Match stage to sections
 
-이 스킬이 ❌ 항목에 대한 *수정 코드*를 제공할 때는 `karpathy-discipline` 스킬이 자동 적용된다:
-- 요청 범위 밖 개선 금지
-- 1회용 추상화 금지
-- 인접 코드 손대지 않음 (해당 ❌ 항목만 surgical patch)
-- 기존 스타일 따름
+| Stage | Sections | Grade filter |
+|-------|----------|--------------|
+| planning / skeleton | **0** | all |
+| building features | 0, 1, 2, 6 | 🔴 + 🟠 |
+| pre-launch | 0–10 (all) | all |
+| incident | relevant only | all |
+| before adding feature | 1, 2, 4 + relevant | 🔴 + 🟠 |
+
+### 2. Apply grade filter
+For each item, **first decide if it applies to this service** (based on profile), then check.
+- 🔴 Required (always)
+- 🟠 Recommended (MAU 1k+ / team 3+ / internet-facing)
+- 🟡 Mid-scale (MAU 10k+ / B2B / 99.9% SLA)
+- 🔵 Large-scale (MAU 100k+ / microservices / 99.99%)
+- ⚪ Optional (skippable with stated reason)
+
+If skipping, output `⏭️` with a one-line reason.
+
+### 3. Output format
+
+```
+✅ [#] item — verified at file:line
+❌ [#] item — problem + patch code
+⚠️ [#] item — partial / weak point
+⏭️ [#] item — not applicable for this service (one-line reason)
+```
+
+### 4. Sort ❌ by risk
+End the audit with a "fix this first" list:
+```
+Security (2) > Reliability (1) > Data (4) > Performance (5) > rest
+```
+
+## Combining with karpathy-discipline
+
+When this skill provides patch code for ❌ items, the `karpathy-discipline` skill applies automatically:
+- Surgical patch — only the failing item, not adjacent code
+- No 1-use abstractions
+- Match existing style
+- Mention any related dead code; don't delete it
+
+## Language
+
+Respond in the user's language. Item names from SPEC.md may be translated for display; keep `#` numbers and grade emojis as-is.

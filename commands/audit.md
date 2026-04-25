@@ -1,17 +1,19 @@
 ---
-description: 서비스 프로필을 받고 ai-project-audit 명세서로 현재 코드를 점검한다
+description: Run the project-audit workflow against the given path or codebase
 ---
 
-`project-audit` 스킬을 발동시키세요.
+Activate the `project-audit` skill.
 
-순서:
-1. 사용자가 메시지에 서비스 프로필을 이미 채웠는지 확인.
-2. 누락된 필드가 있으면 한 번에 모아서 묻습니다 (서비스_유형, 개발_단계, 예상_MAU, 데이터_민감도 등).
-3. 개발 단계에 맞는 섹션 범위를 결정 (기획 → 0번만, 출시 전 → 0~10 전체, 등).
-4. 등급 필터(🔴🟠🟡🔵⚪)를 프로필 기반으로 적용.
-5. 각 항목을 ✅ / ❌ / ⚠️ / ⏭️ 마커로 표기.
-6. ❌ 항목들을 위험도(보안 > 운영 > 데이터 > 성능 > 나머지) 순으로 마지막에 다시 정렬.
+Procedure:
+1. Check if the user already provided the service profile in their message.
+2. If any fields are missing, ask for **all missing fields in one batch** (service_type, stage, expected_mau, data_sensitivity, etc.).
+3. Match the development stage to section ranges (planning → 0; pre-launch → 0–10; etc.).
+4. Apply the grade filter (🔴🟠🟡🔵⚪) based on the profile.
+5. Mark each checked item with ✅ / ❌ / ⚠️ / ⏭️.
+6. End with ❌ items re-sorted by risk: Security > Reliability > Data > Performance > rest.
 
-전체 체크리스트는 `skills/project-audit/references/audit-spec.md`.
+Full checklist: `SPEC.md` at the plugin root.
 
-대상 코드/디렉토리: $ARGUMENTS
+Respond in the user's language.
+
+Target path / codebase: $ARGUMENTS

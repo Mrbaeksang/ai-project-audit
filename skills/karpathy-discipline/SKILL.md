@@ -1,68 +1,66 @@
 ---
 name: karpathy-discipline
-description: Karpathy의 LLM 코딩 함정 4원칙(Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution)을 강제. 사용자가 코드 작성·수정·리팩토링·버그 수정·기능 추가를 요청하면 자동 발동. drive-by 리팩터링·과설계·추측성 변경을 차단하고, 구현 전 명확화·최소 코드·외과적 수정·검증 가능한 목표 변환을 요구한다.
+description: Enforces Karpathy's 4 LLM-coding principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution). Auto-fires whenever the user requests writing, editing, refactoring, fixing, or adding code. Blocks drive-by refactoring, over-engineering, and speculative changes; demands clarification before implementation, minimum code, surgical edits, and conversion of tasks into verifiable goals. Respond in the user's language.
 ---
 
-# Karpathy Discipline — 4원칙 가드
+# Karpathy Discipline
 
-이 스킬은 [Andrej Karpathy의 LLM 코딩 함정 관찰](https://x.com/karpathy/status/2015883857489522876)을 코딩 행동 규약으로 굳힌다. 코드를 짜는 모든 순간에 적용한다.
+Source: [Andrej Karpathy on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876).
 
-## 언제 발동하나
+## Activates on
+- Any request to write, edit, refactor, fix, or add code.
+- Before opening an Edit/Write tool call on existing code.
 
-- 사용자가 새 기능을 요청한다
-- 사용자가 버그 수정을 요청한다
-- 사용자가 리팩토링을 요청한다
-- 기존 파일을 편집하기 전
-- 새 파일을 작성하기 전
-
-## 4원칙 체크 (구현 전 통과 필수)
+## Pre-flight checks (must pass before generating code)
 
 ### ① Think Before Coding
-- [ ] 가정을 명시했는가?
-- [ ] 해석이 둘 이상이면 사용자에게 제시했는가?
-- [ ] 더 단순한 길이 있다면 그것부터 말했는가?
-- [ ] 모호한 부분에 이름을 붙였는가?
+- [ ] Stated assumptions explicitly?
+- [ ] Multiple interpretations → presented to the user?
+- [ ] A simpler path exists → mentioned first?
+- [ ] Named the unclear parts?
 
 ### ② Simplicity First
-- [ ] 요청 범위 *밖* 기능을 추가하지 않았는가?
-- [ ] 1회용 코드에 추상화를 넣지 않았는가?
-- [ ] 발생 불가 시나리오용 에러 처리가 없는가?
-- [ ] 200줄을 50줄로 줄일 여지를 검토했는가?
+- [ ] No features outside the request?
+- [ ] No abstractions for single-use code?
+- [ ] No error handling for impossible scenarios?
+- [ ] Reviewed whether 200 lines could be 50?
 
 ### ③ Surgical Changes
-- [ ] 사용자 요청과 *직결되는* 라인만 수정했는가?
-- [ ] 인접 코드를 "개선"하지 않았는가?
-- [ ] 기존 스타일을 따랐는가 (다르게 하고 싶어도)?
-- [ ] 사전 존재 죽은 코드는 *언급만* 했는가 (삭제 금지)?
-- [ ] 내 변경이 만든 고아만 제거했는가?
+- [ ] Every line traces to the user's request?
+- [ ] No "improvements" to adjacent code?
+- [ ] Existing style preserved (even if you'd write it differently)?
+- [ ] Pre-existing dead code → mentioned only, not deleted?
+- [ ] Removed only orphans my changes created?
 
 ### ④ Goal-Driven Execution
-- [ ] 작업을 검증 가능한 목표로 변환했는가?
-- [ ] 다단계 작업에 단계별 verify를 명시했는가?
-- [ ] 성공 기준이 강한가 ("작동하게" 같은 약한 표현 회피)?
+- [ ] Task converted into a verifiable goal?
+- [ ] Multi-step work has per-step verify checks?
+- [ ] Strong success criteria (avoid weak phrases like "make it work")?
 
-## 변환 예시
+## Translation table
 
-| 사용자 요청 | 변환된 검증 가능 목표 |
-|-------------|------------------------|
-| "검증 추가해" | "잘못된 입력에 대한 테스트 작성 → 실패 확인 → 검증 구현 → 통과 확인" |
-| "버그 고쳐" | "버그 재현 테스트 작성 → 실패 확인 → 수정 → 통과 확인" |
-| "X 리팩토링" | "전체 테스트 통과 확인 → 리팩토링 → 다시 통과 확인" |
-| "이거 정리해줘" | (모호) → "정확히 무엇을 정리하나요? 포맷팅? 함수 분리? 네이밍?" 먼저 묻기 |
+| Request | Goal |
+|---------|------|
+| "Add validation" | "Write tests for invalid inputs → fail → implement → pass" |
+| "Fix the bug" | "Write reproducing test → fail → fix → pass" |
+| "Refactor X" | "Confirm tests pass → refactor → tests still pass" |
+| "Clean this up" | (ambiguous) → ask: formatting? function split? naming? |
 
-## 위반 신호
+## Violation signals — stop and tell the user
 
-다음을 발견하면 멈추고 사용자에게 알린다:
-- 사용자가 요청하지 않은 import 변경
-- "겸사겸사" 추가된 헬퍼 함수
-- "혹시 모르니" 추가된 try/except
-- "더 깔끔하게" 변경된 변수명 (요청 없음)
-- 무관한 영역의 포맷 변경
+- Imports the user didn't ask to change.
+- "Bonus" helper functions added.
+- "Just in case" try/except.
+- Variable renamed for "cleanliness" without request.
+- Formatting changes in unrelated regions.
 
-## 작동 신호
+## Working signals
 
-이 스킬이 효과를 내고 있다면:
-- diff가 작고, 모든 라인이 요청과 직결됨
-- 구현 *전*에 명확화 질문이 옴
-- "더 단순한 방법이 있는데..." 제안이 자주 나옴
-- "이건 요청 범위 밖이라 손대지 않았습니다"가 보임
+- Diffs are small; every line traces to the request.
+- Clarification questions arrive *before* implementation.
+- "A simpler approach exists..." appears often.
+- "This is outside the requested scope, leaving it" appears when it should.
+
+## Language
+
+Respond in the user's language (Korean for Korean prompts, etc.). Code identifiers and file paths stay as-is.

@@ -1,22 +1,24 @@
 ---
-description: ai-project-audit 섹션 0(프로젝트 골조)만 적용해 새 프로젝트 뼈대를 잡는다
+description: Bootstrap project skeleton (section 0 only) before any feature code
 ---
 
-`project-audit` 스킬을 발동시키되, **섹션 0(프로젝트 골조)에만** 한정합니다.
+Activate the `project-audit` skill, scoped to **section 0 (Project Skeleton) only**.
 
-순서:
-1. 서비스 프로필 받기 (없으면 한 번에 묻기).
-2. `skills/project-audit/references/audit-spec.md`의 0.1 ~ 0.12 항목을 프로필에 맞게 구체화:
-   - 디렉토리 구조 (레이어/피처/도메인 중 추천)
-   - 네이밍 컨벤션
-   - Git 브랜치 전략
-   - 커밋 메시지 규칙
-   - 린터·포맷터·pre-commit
-   - README / .env.example 템플릿
-   - 에러 코드 체계
-   - API 계약 방식
-   - 로컬 원터치 실행 명령
-3. 권장안을 실제 파일로 생성 (README.md, .env.example, 린터 설정, pre-commit 훅, 디렉토리 뼈대).
-4. **기능 코드는 짜지 않는다.** 골조만.
+Procedure:
+1. Get the service profile (ask in one batch if missing).
+2. Walk through items 0.1–0.12 in `SPEC.md`, tailored to the profile:
+   - Directory structure (recommend layered / feature / domain)
+   - Naming conventions
+   - Git branching strategy
+   - Commit message convention
+   - Linter / formatter / pre-commit
+   - README and `.env.example` templates
+   - Error code system
+   - API contract approach
+   - One-command local-run script
+3. Generate the actual files (README.md, .env.example, linter configs, pre-commit hooks, directory tree).
+4. **Do not write feature code.** Skeleton only.
 
-대상 프로젝트 경로: $ARGUMENTS
+Respond in the user's language.
+
+Target project path: $ARGUMENTS

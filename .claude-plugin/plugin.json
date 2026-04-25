@@ -1,7 +1,7 @@
 {
   "name": "ai-project-audit",
-  "version": "1.0.0",
-  "description": "Karpathy 4 원칙 + 0~10 섹션 종합 감사 명세서를 Claude Code에 주입하는 플러그인. 서비스 프로필 기반으로 필요 항목만 골라 점검한다.",
+  "version": "1.1.0",
+  "description": "Karpathy's 4 coding principles + a 10-section production audit (OWASP/SOLID/ACID/12-Factor) for Claude Code. Service-profile-driven, grade-aware, multilingual (English / 한국어 / responds in any language).",
   "author": {
     "name": "Mrbaeksang",
     "email": "qortkdgus95@gmail.com",
@@ -21,17 +21,26 @@
     "karpathy",
     "claude-code",
     "claude-code-plugin",
-    "skill",
-    "korean",
+    "claude-code-skill",
+    "claude-skills",
+    "agent-skills",
+    "agentic-coding",
+    "coding-assistant",
+    "anthropic",
+    "ai",
+    "llm",
+    "prompt-engineering",
     "production-readiness",
-    "operational-reliability",
-    "devops"
+    "korean",
+    "multilingual",
+    "i18n"
   ],
   "tags": [
     "audit",
     "review",
     "security",
-    "korean",
-    "karpathy"
+    "karpathy",
+    "multilingual",
+    "i18n"
   ]
 }
