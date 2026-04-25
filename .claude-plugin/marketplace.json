@@ -1,0 +1,17 @@
+{
+  "name": "mrbaeksang-marketplace",
+  "owner": {
+    "name": "Mrbaeksang",
+    "url": "https://github.com/Mrbaeksang"
+  },
+  "plugins": [
+    {
+      "name": "ai-project-audit",
+      "source": ".",
+      "description": "Karpathy 4 원칙 + 0~10 섹션 종합 감사 명세서를 Claude Code에 주입하는 플러그인",
+      "version": "1.0.0",
+      "category": "code-review",
+      "tags": ["audit", "review", "security", "korean", "karpathy"]
+    }
+  ]
+}
