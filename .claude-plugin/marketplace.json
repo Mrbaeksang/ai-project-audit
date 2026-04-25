@@ -1,17 +1,46 @@
 {
   "name": "mrbaeksang-marketplace",
+  "id": "mrbaeksang-marketplace",
   "owner": {
     "name": "Mrbaeksang",
     "url": "https://github.com/Mrbaeksang"
   },
+  "metadata": {
+    "description": "Karpathy's 4 coding principles + 10-section production audit (OWASP/SOLID/ACID/12-Factor) for Claude Code. Multilingual.",
+    "version": "1.1.0"
+  },
   "plugins": [
     {
       "name": "ai-project-audit",
-      "source": ".",
-      "description": "Karpathy 4 원칙 + 0~10 섹션 종합 감사 명세서를 Claude Code에 주입하는 플러그인",
-      "version": "1.0.0",
+      "source": "./",
+      "description": "Karpathy's 4 coding principles + 10-section production audit. Service-profile-driven, grade-aware, multilingual (EN/한국어, responds in any language).",
+      "version": "1.1.0",
+      "author": {
+        "name": "Mrbaeksang",
+        "url": "https://github.com/Mrbaeksang"
+      },
+      "homepage": "https://github.com/Mrbaeksang/ai-project-audit",
+      "license": "MIT",
       "category": "code-review",
-      "tags": ["audit", "review", "security", "korean", "karpathy"]
+      "keywords": [
+        "audit",
+        "code-review",
+        "checklist",
+        "security",
+        "owasp",
+        "12-factor",
+        "solid",
+        "karpathy",
+        "claude-code",
+        "claude-skills",
+        "agent-skills",
+        "anthropic",
+        "ai",
+        "llm",
+        "korean",
+        "multilingual",
+        "i18n"
+      ]
     }
   ]
 }
